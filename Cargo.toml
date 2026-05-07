@@ -1,5 +1,5 @@
 [workspace]
-members = ["gateway-core", "adapters/*"]
+members = ["gateway-core"]
 resolver = "2"
 
 [workspace.package]
