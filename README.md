@@ -98,7 +98,7 @@ sources:
 ### Use the TypeScript SDK
 
 ```typescript
-import { MCPGateway } from '@universal-mcp/sdk';
+import { MCPGateway } from 'universal-mcp-gateway-sdk';
 
 const gateway = new MCPGateway({
   endpoint: 'http://localhost:8080',

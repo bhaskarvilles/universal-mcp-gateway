@@ -1,4 +1,4 @@
-import { MCPGateway } from '@universal-mcp/sdk';
+import { MCPGateway } from 'universal-mcp-gateway-sdk';
 
 async function main() {
   // Initialize the gateway client

@@ -143,13 +143,13 @@ Now AI agents can:
 Install the SDK:
 
 ```bash
-npm install @universal-mcp/sdk
+npm install universal-mcp-gateway-sdk
 ```
 
 Use it in your code:
 
 ```typescript
-import { MCPGateway } from '@universal-mcp/sdk';
+import { MCPGateway } from 'universal-mcp-gateway-sdk';
 
 const gateway = new MCPGateway({
   endpoint: 'http://localhost:8080'
