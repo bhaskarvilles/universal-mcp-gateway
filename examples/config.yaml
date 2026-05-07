@@ -1,0 +1,44 @@
+# Universal MCP Gateway Configuration Example
+
+gateway:
+  host: "0.0.0.0"
+  port: 8080
+  log_level: "info"
+  enable_ui: true
+
+security:
+  enable_sandbox: true
+  max_execution_time: 30
+  rate_limit: "100/minute"
+  allowed_origins:
+    - "*"
+
+sources:
+  # Example: OpenAPI/Swagger API
+  - name: "github-api"
+    type: "openapi"
+    spec: "https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json"
+    base_url: "https://api.github.com"
+    auth:
+      type: "bearer"
+      token: "${GITHUB_TOKEN}"
+  
+  # Example: PostgreSQL Database
+  - name: "app-database"
+    type: "postgresql"
+    connection: "${DATABASE_URL}"
+    tables:
+      - "users"
+      - "orders"
+      - "products"
+    read_only: true
+  
+  # Example: CLI Tool
+  - name: "kubectl"
+    type: "cli"
+    command: "kubectl"
+    allowed_args:
+      - "get"
+      - "describe"
+      - "logs"
+    sandbox: true
