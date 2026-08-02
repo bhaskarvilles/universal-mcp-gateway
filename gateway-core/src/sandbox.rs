@@ -2,7 +2,6 @@
 // This module provides isolation for untrusted code execution
 
 use anyhow::Result;
-use serde_json::Value;
 
 pub struct Sandbox {
     enable_sandbox: bool,
@@ -12,7 +11,7 @@ impl Sandbox {
     pub fn new(enable_sandbox: bool) -> Self {
         Self { enable_sandbox }
     }
-    
+
     pub async fn execute<F, T>(&self, f: F) -> Result<T>
     where
         F: FnOnce() -> Result<T> + Send,
@@ -24,14 +23,14 @@ impl Sandbox {
             // 2. Load the function into the sandbox
             // 3. Execute with resource limits
             // 4. Return the result
-            
+
             // For now, just execute directly
             f()
         } else {
             f()
         }
     }
-    
+
     pub fn validate_code(&self, _code: &str) -> Result<()> {
         // Validate code before execution
         // Check for dangerous patterns, imports, etc.

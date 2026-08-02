@@ -10,9 +10,9 @@ use tokio::sync::RwLock;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
-use crate::config::Config;
 use crate::adapters::AdapterRegistry;
-use crate::protocol::{MCPProtocolHandler, MCPRequest, MCPResponse};
+use crate::config::Config;
+use crate::protocol::{MCPProtocolHandler, MCPRequest};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -36,10 +36,10 @@ impl ApiServer {
             adapter_registry,
             protocol_handler,
         };
-        
+
         Self { state }
     }
-    
+
     pub async fn serve(self) -> anyhow::Result<()> {
         let app = Router::new()
             .route("/", get(root_handler))
@@ -50,16 +50,19 @@ impl ApiServer {
             .layer(CorsLayer::permissive())
             .layer(TraceLayer::new_for_http())
             .with_state(self.state.clone());
-        
-        let addr = format!("{}:{}", self.state.config.gateway.host, self.state.config.gateway.port);
+
+        let addr = format!(
+            "{}:{}",
+            self.state.config.gateway.host, self.state.config.gateway.port
+        );
         let listener = tokio::net::TcpListener::bind(&addr).await?;
-        
+
         tracing::info!("🚀 Gateway listening on http://{}", addr);
         tracing::info!("📊 Health check: http://{}/health", addr);
         tracing::info!("🔧 MCP endpoint: http://{}/mcp", addr);
-        
+
         axum::serve(listener, app).await?;
-        
+
         Ok(())
     }
 }
@@ -80,7 +83,7 @@ async fn root_handler() -> impl IntoResponse {
 async fn health_handler(State(state): State<AppState>) -> impl IntoResponse {
     let registry = state.adapter_registry.read().await;
     let adapters = registry.list_adapters();
-    
+
     Json(serde_json::json!({
         "status": "healthy",
         "adapters": adapters.len(),
@@ -99,7 +102,7 @@ async fn mcp_handler(
 async fn list_adapters_handler(State(state): State<AppState>) -> impl IntoResponse {
     let registry = state.adapter_registry.read().await;
     let adapters = registry.list_adapters();
-    
+
     Json(serde_json::json!({
         "adapters": adapters
     }))
@@ -107,11 +110,11 @@ async fn list_adapters_handler(State(state): State<AppState>) -> impl IntoRespon
 
 async fn list_tools_handler(State(state): State<AppState>) -> impl IntoResponse {
     let registry = state.adapter_registry.read().await;
-    
+
     match registry.list_all_tools().await {
         Ok(adapter_tools) => {
             let mut all_tools = Vec::new();
-            
+
             for (adapter_name, tools) in adapter_tools {
                 for tool in tools {
                     all_tools.push(serde_json::json!({
@@ -123,16 +126,20 @@ async fn list_tools_handler(State(state): State<AppState>) -> impl IntoResponse 
                     }));
                 }
             }
-            
-            (StatusCode::OK, Json(serde_json::json!({
-                "tools": all_tools,
-                "count": all_tools.len()
-            })))
+
+            (
+                StatusCode::OK,
+                Json(serde_json::json!({
+                    "tools": all_tools,
+                    "count": all_tools.len()
+                })),
+            )
         }
-        Err(e) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({
                 "error": format!("Failed to list tools: {}", e)
-            })))
-        }
+            })),
+        ),
     }
 }

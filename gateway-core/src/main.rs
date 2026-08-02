@@ -4,13 +4,15 @@ use std::path::PathBuf;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
+mod adapters;
+mod api;
+#[allow(dead_code)]
+mod auth;
 mod config;
 mod gateway;
-mod adapters;
 mod protocol;
+#[allow(dead_code)]
 mod sandbox;
-mod api;
-mod auth;
 
 use crate::config::Config;
 use crate::gateway::Gateway;
@@ -64,7 +66,7 @@ async fn main() -> Result<()> {
 
     // Load configuration
     let mut config = Config::from_file(&args.config)?;
-    
+
     // Override with CLI args if provided
     if let Some(host) = args.host {
         config.gateway.host = host;
@@ -74,7 +76,10 @@ async fn main() -> Result<()> {
     }
 
     info!("Configuration loaded from {:?}", args.config);
-    info!("Gateway will listen on {}:{}", config.gateway.host, config.gateway.port);
+    info!(
+        "Gateway will listen on {}:{}",
+        config.gateway.host, config.gateway.port
+    );
 
     // Initialize and start gateway
     let gateway = Gateway::new(config).await?;
