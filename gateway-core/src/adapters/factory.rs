@@ -1,11 +1,12 @@
 use anyhow::Result;
 use std::sync::Arc;
 
-use crate::config::SourceConfig;
-use super::{Adapter, AdapterError};
+use super::cli::CLIAdapter;
 use super::openapi::OpenAPIAdapter;
 use super::postgresql::PostgreSQLAdapter;
-use super::cli::CLIAdapter;
+use super::sqlite::SQLiteAdapter;
+use super::{Adapter, AdapterError};
+use crate::config::SourceConfig;
 
 pub struct AdapterFactory;
 
@@ -13,7 +14,7 @@ impl AdapterFactory {
     pub fn new() -> Self {
         Self
     }
-    
+
     pub async fn create_adapter(
         &self,
         adapter_type: &str,
@@ -30,14 +31,20 @@ impl AdapterFactory {
                 adapter.initialize().await?;
                 Ok(Arc::new(adapter))
             }
+            "sqlite" => {
+                let mut adapter = SQLiteAdapter::new(config)?;
+                adapter.initialize().await?;
+                Ok(Arc::new(adapter))
+            }
             "cli" | "command" => {
                 let mut adapter = CLIAdapter::new(config)?;
                 adapter.initialize().await?;
                 Ok(Arc::new(adapter))
             }
-            _ => Err(AdapterError::InitializationError(
-                format!("Unknown adapter type: {}", adapter_type)
-            )),
+            _ => Err(AdapterError::InitializationError(format!(
+                "Unknown adapter type: {}",
+                adapter_type
+            ))),
         }
     }
 }

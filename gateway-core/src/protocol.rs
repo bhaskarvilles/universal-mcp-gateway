@@ -40,7 +40,7 @@ impl MCPProtocolHandler {
     pub fn new(adapter_registry: Arc<RwLock<AdapterRegistry>>) -> Self {
         Self { adapter_registry }
     }
-    
+
     pub async fn handle_request(&self, request: MCPRequest) -> MCPResponse {
         match request.method.as_str() {
             "tools/list" => self.handle_list_tools(request).await,
@@ -58,7 +58,7 @@ impl MCPProtocolHandler {
             },
         }
     }
-    
+
     async fn handle_initialize(&self, request: MCPRequest) -> MCPResponse {
         MCPResponse {
             jsonrpc: "2.0".to_string(),
@@ -76,14 +76,14 @@ impl MCPProtocolHandler {
             error: None,
         }
     }
-    
+
     async fn handle_list_tools(&self, request: MCPRequest) -> MCPResponse {
         let registry = self.adapter_registry.read().await;
-        
+
         match registry.list_all_tools().await {
             Ok(adapter_tools) => {
                 let mut all_tools = Vec::new();
-                
+
                 for (adapter_name, tools) in adapter_tools {
                     for tool in tools {
                         all_tools.push(serde_json::json!({
@@ -97,7 +97,7 @@ impl MCPProtocolHandler {
                         }));
                     }
                 }
-                
+
                 MCPResponse {
                     jsonrpc: "2.0".to_string(),
                     id: request.id,
@@ -119,7 +119,7 @@ impl MCPProtocolHandler {
             },
         }
     }
-    
+
     async fn handle_call_tool(&self, request: MCPRequest) -> MCPResponse {
         let params = match request.params {
             Some(p) => p,
@@ -136,7 +136,7 @@ impl MCPProtocolHandler {
                 };
             }
         };
-        
+
         let tool_name = match params.get("name").and_then(|v| v.as_str()) {
             Some(name) => name,
             None => {
@@ -152,9 +152,12 @@ impl MCPProtocolHandler {
                 };
             }
         };
-        
-        let arguments = params.get("arguments").cloned().unwrap_or(Value::Object(serde_json::Map::new()));
-        
+
+        let arguments = params
+            .get("arguments")
+            .cloned()
+            .unwrap_or(Value::Object(serde_json::Map::new()));
+
         // Parse adapter.tool format
         let parts: Vec<&str> = tool_name.split('.').collect();
         if parts.len() != 2 {
@@ -169,10 +172,10 @@ impl MCPProtocolHandler {
                 }),
             };
         }
-        
+
         let adapter_name = parts[0];
         let tool = parts[1];
-        
+
         let registry = self.adapter_registry.read().await;
         let adapter = match registry.get(adapter_name) {
             Some(a) => a,
@@ -189,14 +192,14 @@ impl MCPProtocolHandler {
                 };
             }
         };
-        
+
         let ctx = ExecutionContext {
             user_id: None,
             session_id: Uuid::new_v4().to_string(),
             timeout: 30,
             metadata: std::collections::HashMap::new(),
         };
-        
+
         match adapter.execute(tool, arguments, ctx).await {
             Ok(result) => MCPResponse {
                 jsonrpc: "2.0".to_string(),

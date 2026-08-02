@@ -7,10 +7,10 @@ use thiserror::Error;
 pub enum AuthError {
     #[error("Invalid credentials")]
     InvalidCredentials,
-    
+
     #[error("Token expired")]
     TokenExpired,
-    
+
     #[error("Insufficient permissions")]
     InsufficientPermissions,
 }
@@ -34,7 +34,7 @@ impl AuthManager {
     pub fn new() -> Self {
         Self {}
     }
-    
+
     pub fn validate_token(&self, _token: &str) -> Result<AuthToken, AuthError> {
         // Validate JWT token
         Ok(AuthToken {
@@ -43,7 +43,7 @@ impl AuthManager {
             permissions: vec!["read".to_string(), "write".to_string()],
         })
     }
-    
+
     pub fn check_permission(&self, _token: &AuthToken, _permission: &str) -> Result<(), AuthError> {
         // Check if token has required permission
         Ok(())

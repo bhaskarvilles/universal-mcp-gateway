@@ -4,6 +4,20 @@
 
 Adapters are the bridge between the MCP Gateway and external systems. Each adapter translates between MCP tools and a specific type of data source or API.
 
+## SQLite
+
+The SQLite adapter discovers configured tables and exposes a read-only `query_<table>`
+tool for each one. Each tool accepts an optional `limit` between 1 and 1000 (default: 100);
+arbitrary SQL execution is intentionally not exposed.
+
+```yaml
+sources:
+  - name: local-inventory
+    type: sqlite
+    connection: "sqlite:./inventory.db"
+    tables: ["products", "orders"] # omit or use ["*"] for all user tables
+```
+
 ## Adapter Interface
 
 All adapters must implement the `Adapter` trait:

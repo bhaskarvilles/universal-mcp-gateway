@@ -15,13 +15,13 @@ pub struct Config {
 pub struct GatewayConfig {
     #[serde(default = "default_host")]
     pub host: String,
-    
+
     #[serde(default = "default_port")]
     pub port: u16,
-    
+
     #[serde(default = "default_log_level")]
     pub log_level: String,
-    
+
     #[serde(default)]
     pub enable_ui: bool,
 }
@@ -30,13 +30,13 @@ pub struct GatewayConfig {
 pub struct SecurityConfig {
     #[serde(default = "default_true")]
     pub enable_sandbox: bool,
-    
+
     #[serde(default = "default_max_execution_time")]
     pub max_execution_time: u64,
-    
+
     #[serde(default = "default_rate_limit")]
     pub rate_limit: String,
-    
+
     #[serde(default)]
     pub allowed_origins: Vec<String>,
 }
@@ -44,27 +44,27 @@ pub struct SecurityConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SourceConfig {
     pub name: String,
-    
+
     #[serde(rename = "type")]
     pub source_type: String,
-    
+
     #[serde(flatten)]
     pub config: HashMap<String, serde_json::Value>,
 }
 
 impl Config {
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let content = fs::read_to_string(path.as_ref())
-            .context("Failed to read configuration file")?;
-        
-        let config: Config = serde_yaml::from_str(&content)
-            .context("Failed to parse configuration file")?;
-        
+        let content =
+            fs::read_to_string(path.as_ref()).context("Failed to read configuration file")?;
+
+        let config: Config =
+            serde_yaml::from_str(&content).context("Failed to parse configuration file")?;
+
         config.validate()?;
-        
+
         Ok(config)
     }
-    
+
     fn validate(&self) -> Result<()> {
         // Validate source names are unique
         let mut names = std::collections::HashSet::new();
@@ -73,7 +73,7 @@ impl Config {
                 anyhow::bail!("Duplicate source name: {}", source.name);
             }
         }
-        
+
         Ok(())
     }
 }
